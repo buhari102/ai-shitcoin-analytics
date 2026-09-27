@@ -1,5 +1,6 @@
 """Memecoin research firm - command line entrypoint.
 
+    python main.py dashboard              live web UI at http://127.0.0.1:8787
     python main.py status                 what data and research state exists
     python main.py collect [--loop]       run the flow collector
     python main.py backfill               top up klines and funding history
@@ -215,6 +216,13 @@ def cmd_book(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    from firm.dashboard.server import serve
+
+    serve(port=args.port, open_browser=not args.no_browser)
+    return 0
+
+
 def cmd_postmortem(args: argparse.Namespace) -> int:
     from firm.crew import build_postmortem_crew
 
@@ -253,6 +261,11 @@ def main() -> int:
     p = sub.add_parser("monitor", help="check promoted strategies for decay")
     p.add_argument("--auto-retire", action="store_true")
     p.set_defaults(func=cmd_monitor)
+
+    p = sub.add_parser("dashboard", help="open the live web dashboard")
+    p.add_argument("--port", type=int, default=8787)
+    p.add_argument("--no-browser", action="store_true")
+    p.set_defaults(func=cmd_dashboard)
 
     sub.add_parser("resolve", help="grade past forecasts").set_defaults(func=cmd_resolve)
     sub.add_parser("book", help="run the full agent crew").set_defaults(func=cmd_book)

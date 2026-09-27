@@ -9,6 +9,7 @@ from pathlib import Path
 from crewai import Crew, Process
 
 import config
+from firm import events
 from firm.agents import build_agents
 from firm.schemas import Portfolio
 from firm.tasks import build_postmortem_task, build_tasks
@@ -31,6 +32,8 @@ def build_crew(json_path: Path) -> Crew:
         tasks=tasks,
         process=Process.sequential,
         max_rpm=config.CREW_MAX_RPM,
+        step_callback=events.make_step_callback(),
+        task_callback=events.make_task_callback(),
         verbose=True,
     )
 
@@ -42,6 +45,8 @@ def build_postmortem_crew() -> Crew:
         tasks=[build_postmortem_task(agents)],
         process=Process.sequential,
         max_rpm=config.CREW_MAX_RPM,
+        step_callback=events.make_step_callback(),
+        task_callback=events.make_task_callback(),
         verbose=True,
     )
 
@@ -131,7 +136,12 @@ def run_daily(stamp: str | None = None) -> dict:
     json_path, md_path = report_paths(stamp)
     crew = build_crew(json_path)
 
-    result = crew.kickoff()
+    events.start_run(label=json_path.stem)
+    try:
+        result = crew.kickoff()
+    except Exception as exc:
+        events.emit("run_failed", error=str(exc)[:500])
+        raise
 
     portfolio = getattr(result, "pydantic", None)
     if isinstance(portfolio, Portfolio):
@@ -141,6 +151,13 @@ def run_daily(stamp: str | None = None) -> dict:
         # The model failed to produce the structured shape; keep the raw text
         # rather than losing the run.
         md_path.write_text(str(result), encoding="utf-8")
+
+    events.emit(
+        "run_completed",
+        report=md_path.name,
+        structured=isinstance(portfolio, Portfolio),
+        ideas=len(portfolio.ideas) if isinstance(portfolio, Portfolio) else None,
+    )
 
     return {
         "json": str(json_path),

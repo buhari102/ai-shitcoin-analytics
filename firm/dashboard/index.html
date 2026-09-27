@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Memecoin Research Firm</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --muted: #8b949e; --accent: #58a6ff; --good: #3fb950; --bad: #f85149;
+    --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+  header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px; position: sticky; top: 0;
+    background: var(--bg); z-index: 10;
+  }
+  h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 12px; }
+  .spacer { flex: 1; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); display: inline-block; }
+  nav { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--border); }
+  nav button {
+    background: none; border: none; color: var(--muted); padding: 10px 14px;
+    cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  main { padding: 24px; max-width: 1400px; }
+  section { display: none; }
+  section.active { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .card .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  .card .value { font-size: 24px; font-weight: 600; margin-top: 4px; }
+  .card .note { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  .bar { height: 5px; background: #21262d; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); }
+  h2 { font-size: 14px; margin: 24px 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .tw { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.wrap { white-space: normal; min-width: 260px; max-width: 460px; }
+  .pill { padding: 1px 7px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); }
+  .pill.pass { color: var(--good); border-color: var(--good); }
+  .pill.fail { color: var(--bad); border-color: var(--bad); }
+  .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; border: 1px solid; font-size: 13px; }
+  .banner.warn { background: #2a2113; border-color: var(--warn); color: #e3b341; }
+  .banner.bad { background: #2a1517; border-color: var(--bad); color: #ff7b72; }
+  .feed { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; max-height: 620px; overflow-y: auto; }
+  .ev { padding: 9px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; }
+  .ev:last-child { border-bottom: none; }
+  .ev .t { color: var(--muted); font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ev .body { flex: 1; min-width: 0; }
+  .ev .who { font-weight: 600; font-size: 12px; }
+  .ev .what { color: var(--muted); font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+  .tag { font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #21262d; color: var(--muted); }
+  .tag.tool { color: var(--accent); }
+  .tag.task { color: var(--good); }
+  .tag.err { color: var(--bad); }
+  .empty { color: var(--muted); padding: 28px; text-align: center; }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; white-space: pre-wrap; font-size: 13px; }
+  select { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+  .reasons { color: var(--muted); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Memecoin Research Firm</h1>
+  <span class="sub" id="harness"></span>
+  <div class="spacer"></div>
+  <span class="sub"><span class="dot" id="live"></span> <span id="updated">connecting</span></span>
+</header>
+
+<nav>
+  <button data-tab="overview" class="active">Overview</button>
+  <button data-tab="activity">Agent Activity</button>
+  <button data-tab="research">Research</button>
+  <button data-tab="data">Data</button>
+  <button data-tab="reports">Reports</button>
+</nav>
+
+<main>
+  <section id="overview" class="active">
+    <div id="alerts"></div>
+    <div class="grid" id="kpis"></div>
+    <h2>Strategy archive by niche</h2>
+    <div id="niches"></div>
+  </section>
+
+  <section id="activity">
+    <div class="sub" style="margin-bottom:12px">
+      Live feed of agent reasoning and tool calls. Populates when you run
+      <code>python main.py book</code>.
+    </div>
+    <div class="feed" id="feed"><div class="empty">No agent activity recorded yet.</div></div>
+  </section>
+
+  <section id="research">
+    <div class="grid" id="research-kpis"></div>
+    <h2>Archive elites (best per behavioural niche)</h2>
+    <div id="elites"></div>
+    <h2>Agent forecast calibration</h2>
+    <div id="calibration"></div>
+    <h2>Recently rejected hypotheses</h2>
+    <div id="failures"></div>
+  </section>
+
+  <section id="data">
+    <h2>Price history</h2>
+    <div id="bars"></div>
+    <h2>Funding history</h2>
+    <div id="funding"></div>
+    <h2>Self-collected flow (cannot be backfilled)</h2>
+    <div id="flow"></div>
+  </section>
+
+  <section id="reports">
+    <select id="report-select"><option>No reports yet</option></select>
+    <div id="report-body" style="margin-top:16px"></div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let activeTab = "overview";
+let eventCursor = 0;
+let feedEmpty = true;
+
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+    btn.classList.add("active");
+    $(btn.dataset.tab).classList.add("active");
+    activeTab = btn.dataset.tab;
+    refresh();
+  };
+});
+
+const fmt = n => n == null ? "-" : typeof n === "number"
+  ? (Math.abs(n) >= 1000 ? n.toLocaleString(undefined, {maximumFractionDigits: 0})
+     : n.toLocaleString(undefined, {maximumFractionDigits: 4}))
+  : n;
+
+const table = (cols, rows) => {
+  if (!rows.length) return '<div class="empty">Nothing here yet.</div>';
+  const head = cols.map(c => `<th>${c.label}</th>`).join("");
+  const body = rows.map(r => "<tr>" + cols.map(c => {
+    const v = c.get(r);
+    const cls = [c.num ? "num" : "", c.wrap ? "wrap" : ""].filter(Boolean).join(" ");
+    return `<td class="${cls}">${v == null ? "-" : v}</td>`;
+  }).join("") + "</tr>").join("");
+  return `<div class="tw"><table><thead><tr>${head}</tr></thead>
+          <tbody>${body}</tbody></table></div>`;
+};
+
+async function get(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(path + " -> " + r.status);
+  return r.json();
+}
+
+async function loadOverview() {
+  const [s, r] = await Promise.all([get("/api/status"), get("/api/research")]);
+  $("harness").textContent = "harness v" + r.harness_version;
+
+  const alerts = [];
+  if (!s.flow_testable) {
+    alerts.push(`<div class="banner warn">
+      <b>Flow dataset is ${s.flow_span_days.toFixed(2)} days old.</b>
+      Binance retains only ~21 days of open interest and positioning data and it cannot be
+      backfilled, so flow signals stay untestable until roughly 90 days are collected.
+      Keep <code>python main.py collect --loop</code> running.
+      <div class="bar"><div style="width:${s.flow_progress_pct.toFixed(1)}%"></div></div>
+    </div>`);
+  }
+  if (r.archive.total > 0 && r.archive.promoted === 0) {
+    alerts.push(`<div class="banner warn">
+      <b>${r.archive.total} hypotheses tested, none promoted.</b>
+      That is the expected outcome of an honest search. The deflation bar rises with every
+      trial, so each new test makes the next one harder to pass.
+    </div>`);
+  }
+  $("alerts").innerHTML = alerts.join("");
+
+  $("kpis").innerHTML = [
+    ["Symbols tracked", s.symbols_1h, s.funding_series + " funding series"],
+    ["Bars stored", fmt(s.total_bars), "1h, 4h and 1d"],
+    ["Flow history", s.flow_span_days.toFixed(2) + "d", s.flow_testable ? "testable" : "need ~90d"],
+    ["Hypotheses tested", r.ledger.hypotheses_registered, r.ledger.promoted + " promoted"],
+    ["Archive niches", r.archive.niches_occupied, r.archive.total + " candidates"],
+    ["Forecasts", r.forecasts.forecasts_recorded, r.forecasts.resolved + " resolved"],
+  ].map(([label, value, note]) => `<div class="card">
+      <div class="label">${label}</div><div class="value">${value}</div>
+      <div class="note">${note}</div></div>`).join("");
+
+  $("niches").innerHTML = table([
+    {label: "Niche", get: n => n.niche},
+    {label: "Candidates", get: n => n.candidates, num: true},
+    {label: "Promoted", get: n => n.promoted, num: true},
+    {label: "Retired", get: n => n.retired, num: true},
+    {label: "Best fitness", get: n => fmt(n.best_fitness), num: true},
+    {label: "Mean Sharpe", get: n => `<span class="${n.mean_sharpe >= 0 ? "good" : "bad"}">${fmt(n.mean_sharpe)}</span>`, num: true},
+  ], r.attribution.niches || []);
+}
+
+async function loadResearch() {
+  const [r, f] = await Promise.all([get("/api/research"), get("/api/failures")]);
+
+  $("research-kpis").innerHTML = [
+    ["Trial count", r.ledger.deflation_trial_count, "drives Sharpe deflation"],
+    ["Promotion rate", ((r.attribution.promotion_rate || 0) * 100).toFixed(1) + "%", r.archive.promoted + " of " + r.archive.total],
+    ["Holdout spent", r.ledger.holdout_evaluations_spent, r.limits.holdout_tail_days + "d reserved"],
+    ["Min R-multiple", r.limits.min_r_multiple, "promotion gate"],
+  ].map(([l, v, n]) => `<div class="card"><div class="label">${l}</div>
+      <div class="value">${v}</div><div class="note">${n}</div></div>`).join("");
+
+  $("elites").innerHTML = table([
+    {label: "Strategy", get: e => e.name},
+    {label: "Niche", get: e => e.niche},
+    {label: "Trades", get: e => fmt(e.n_trades), num: true},
+    {label: "Sharpe", get: e => `<span class="${e.sharpe >= 0 ? "good" : "bad"}">${fmt(e.sharpe)}</span>`, num: true},
+    {label: "Fitness", get: e => fmt(e.fitness), num: true},
+    {label: "Verdict", get: e => `<span class="pill ${e.passed ? "pass" : "fail"}">${e.passed ? "promoted" : "rejected"}</span>`},
+    {label: "Why rejected", wrap: true, get: e => `<span class="reasons">${(e.reasons || []).join("; ") || "-"}</span>`},
+  ], r.elites || []);
+
+  $("calibration").innerHTML = (r.leaderboard || []).length
+    ? table([
+        {label: "Agent", get: a => a.agent},
+        {label: "Forecasts", get: a => a.n, num: true},
+        {label: "Base rate", get: a => fmt(a.base_rate), num: true},
+        {label: "Brier", get: a => fmt(a.brier), num: true},
+        {label: "Skill", get: a => `<span class="${a.skill_score > 0 ? "good" : "bad"}">${fmt(a.skill_score)}</span>`, num: true},
+        {label: "Overconfidence", get: a => fmt(a.overconfidence), num: true},
+        {label: "Status", get: a => a.status},
+      ], r.leaderboard)
+    : `<div class="empty">No forecasts resolved yet. Agents earn a calibration score only
+        after their calls have been graded against what actually happened.</div>`;
+
+  $("failures").innerHTML = table([
+    {label: "Hypothesis", get: x => x.title},
+    {label: "Rule", wrap: true, get: x => `<span class="reasons">${escapeHtml(x.statement || "")}</span>`},
+    {label: "Trades", get: x => fmt(x.n_trades), num: true},
+    {label: "Rejected because", wrap: true, get: x => `<span class="reasons">${(x.reasons || []).join("; ")}</span>`},
+  ], f.failures || []);
+}
+
+async function loadData() {
+  const s = await get("/api/status");
+  $("bars").innerHTML = table([
+    {label: "Symbol", get: b => b.name},
+    {label: "1h bars", get: b => fmt(b.rows), num: true},
+    {label: "From", get: b => b.first},
+    {label: "To", get: b => b.last},
+  ], s.bars || []);
+
+  $("funding").innerHTML = table([
+    {label: "Symbol", get: b => b.name},
+    {label: "Points", get: b => fmt(b.rows), num: true},
+    {label: "Since", get: b => b.first},
+  ], s.funding || []);
+
+  $("flow").innerHTML = (s.flow || []).length
+    ? table([
+        {label: "Symbol", get: b => b.symbol},
+        {label: "Snapshots", get: b => fmt(b.snapshots), num: true},
+        {label: "Span (days)", get: b => (b.span_days || 0).toFixed(3), num: true},
+      ], s.flow)
+    : `<div class="empty">No flow collected. Every hour the collector is off is history
+        you cannot recover.</div>`;
+}
+
+const TAGS = {
+  tool_call: "tool", task_completed: "task", run_started: "task",
+  run_completed: "task", run_failed: "err", agent_step: "",
+};
+
+async function loadActivity() {
+  const d = await get("/api/events?since=" + eventCursor);
+  if (!d.events.length) return;
+
+  if (feedEmpty) { $("feed").innerHTML = ""; feedEmpty = false; }
+
+  const html = d.events.map(e => {
+    const time = new Date(e.ts).toLocaleTimeString();
+    const tag = TAGS[e.type] ?? "";
+    let who = e.agent || e.label || e.type;
+    let what = "";
+
+    if (e.type === "tool_call") {
+      who = `${e.agent} -> ${e.tool}`;
+      what = (e.tool_input ? "in: " + e.tool_input + "\n" : "") + (e.output || "");
+    } else if (e.type === "task_completed") {
+      what = e.summary || "";
+    } else if (e.type === "run_started") {
+      who = "RUN STARTED"; what = e.label || "";
+    } else if (e.type === "run_completed") {
+      who = "RUN COMPLETE";
+      what = `${e.report} - ${e.ideas ?? 0} ideas, structured=${e.structured}`;
+    } else if (e.type === "run_failed") {
+      who = "RUN FAILED"; what = e.error || "";
+    } else {
+      what = e.thought || "";
+    }
+
+    return `<div class="ev"><span class="t">${time}</span><div class="body">
+      <div class="who">${who} <span class="tag ${tag}">${e.type}</span></div>
+      <div class="what">${escapeHtml(what)}</div></div></div>`;
+  }).join("");
+
+  const feed = $("feed");
+  const atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 120;
+  feed.insertAdjacentHTML("beforeend", html);
+  eventCursor = d.total;
+  if (atBottom) feed.scrollTop = feed.scrollHeight;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+}
+
+async function loadReports() {
+  const d = await get("/api/reports");
+  const sel = $("report-select");
+  if (!d.reports.length) {
+    sel.innerHTML = "<option>No reports yet - run: python main.py book</option>";
+    $("report-body").innerHTML = `<div class="empty">The crew has not produced a book yet.</div>`;
+    return;
+  }
+  if (sel.options.length !== d.reports.length || sel.dataset.n != d.reports.length) {
+    sel.innerHTML = d.reports.map(r => `<option value="${r.name}">${r.name}</option>`).join("");
+    sel.dataset.n = d.reports.length;
+    sel.onchange = showReport;
+    showReport();
+  }
+}
+
+async function showReport() {
+  const name = $("report-select").value;
+  if (!name) return;
+  const d = await get("/api/report?name=" + encodeURIComponent(name));
+  $("report-body").innerHTML = d.error
+    ? `<div class="empty">${d.error}</div>`
+    : `<pre>${escapeHtml(d.content)}</pre>`;
+}
+
+async function refresh() {
+  try {
+    if (activeTab === "overview") await loadOverview();
+    else if (activeTab === "research") await loadResearch();
+    else if (activeTab === "data") await loadData();
+    else if (activeTab === "reports") await loadReports();
+    // The activity feed always polls, so a run started from another tab is
+    // already captured when you switch to it.
+    await loadActivity();
+    $("live").style.background = "var(--good)";
+    $("updated").textContent = "updated " + new Date().toLocaleTimeString();
+  } catch (err) {
+    $("live").style.background = "var(--bad)";
+    $("updated").textContent = "server unreachable";
+  }
+}
+
+refresh();
+setInterval(refresh, 4000);
+</script>
+</body>
+</html>
